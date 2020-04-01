@@ -36,10 +36,6 @@ Parameters:
     Default: Prod-MyStack
     Description: A name for the production stack
     Type: String
-  ProdStackConfig:
-    Default: example1-stackset-conf-prod.json
-    Description: The configuration file name for the production stack
-    Type: String
   ChangeSetName:
     Default: UpdatePreview-MyStack
     Description: A name for the production stack change set
@@ -66,7 +62,6 @@ Metadata:
         Parameters:
           - ChangeSetName
           - ProdStackName
-          - ProdStackConfig
 
 Resources:
 
@@ -285,7 +280,6 @@ Resources:
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref ProdStackName
                 ChangeSetName: !Ref ChangeSetName
-                TemplateConfiguration: !Sub "TemplateSource::${ProdStackConfig}"
                 TemplatePath: !Sub "TemplateSource::${TemplateFileName}"
               RunOrder: 1
             - Name: ApproveChangeSet
