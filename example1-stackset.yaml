@@ -38,5 +38,5 @@ Resources:
           Accounts:
             - 652177216007
           ParameterOverrides:
-            - ReadCapacity: 50
+            - ReadCapacity: 40
             - WriteCapacity: 50
