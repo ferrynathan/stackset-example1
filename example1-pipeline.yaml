@@ -1,0 +1,312 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  This template builds an AWS CodePipeline three-stages pipeline without staging that implements a continuous delivery release
+  process for AWS CloudFormation stacks. Push your CloudFormation templates
+  to a Github repository before building the pipeline. You need to create a valid personal Github token for CodePipeline to use. The pipeline then uses your repo
+  to automatically create stacks and change sets.
+  Please follow the README for more instructions.
+
+Parameters:
+  Namespace:
+    Description: A prefix used to name provisioned resources
+    Type: String
+    Default: Nathan
+  PipelineName:
+    Description: A name for the pipeline
+    Type: String
+  GithubOwner: 
+    Description: 'Github account name (not an url)'
+    Type: String
+  GithubRepo:
+    Description: 'Github repository name (not an url)'
+    Type: String
+  GithubBranch: 
+    Description: 'Github branch that triggers the pipeline with a webhook (master for example)'
+    Type: String
+  GithubOAuthToken:
+    Description: Github OAuthToken to give CodePipeline permissions to pull the repo
+    Type: String
+  TemplateFileName:
+    Default: example1-stackset.yaml
+    Description: The file name of your stack template
+    Type: String
+  ProdStackName:
+    Default: Prod-MyStack
+    Description: A name for the production stack
+    Type: String
+  ProdStackConfig:
+    Default: prod-stack-configuration.json
+    Description: The configuration file name for the production stack
+    Type: String
+  ChangeSetName:
+    Default: UpdatePreview-MyStack
+    Description: A name for the production stack change set
+    Type: String
+  Email:
+    Description: The email address where CodePipeline sends pipeline notifications
+    Type: String
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "CodePipeline Settings"
+        Parameters:
+          - PipelineName
+          - Email
+          - GithubOwner
+          - GithubRepo
+          - GithubBranch
+          - GithubOAuthToken
+          - TemplateFileName
+      - Label:
+          default: "Production Stack Settings"
+        Parameters:
+          - ChangeSetName
+          - ProdStackName
+          - ProdStackConfig
+
+Resources:
+
+#================================================================================
+# CodeBuild
+#================================================================================
+
+# CodeBuild IAM
+
+  CFNLintCodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Namespace}-CodeBuildCFNLintRole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+      Path: /
+
+  CodeBuildLogsPolicy:
+      Type: AWS::IAM::ManagedPolicy
+      Properties:
+        ManagedPolicyName: !Sub "${Namespace}-CodeBuildLogsPolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action:
+              - 'logs:CreateLogGroup'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource: "*"
+        Roles:
+          - !Ref CFNLintCodeBuildServiceRole
+
+  CodeBuildS3Policy:
+      Type: AWS::IAM::ManagedPolicy
+      Properties:
+        ManagedPolicyName: !Sub "${Namespace}-CodeBuildS3Policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action:
+              - 's3:List*'
+              - 's3:Get*'
+              - 's3:Put*'
+            Resource: "*"
+        Roles:
+          - !Ref CFNLintCodeBuildServiceRole
+
+# CodeBuild Logic
+
+  CFNLintCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+        Name: !Sub ${Namespace}-cfn-lint-code-build-project
+        Description: CodeBuild Project to validate CloudFormation templates using cnf-python-lint
+        Artifacts:
+          Type: CODEPIPELINE
+        Environment:
+            Type: LINUX_CONTAINER
+            ComputeType: BUILD_GENERAL1_SMALL
+            Image: aws/codebuild/python:3.6.5
+        ServiceRole:
+          !GetAtt CFNLintCodeBuildServiceRole.Arn
+        Source:
+            Type: CODEPIPELINE
+            BuildSpec: |
+              version: 0.2
+              phases:
+                install:
+                  commands:
+                    - pip install --upgrade pip
+                    - env && ls -l && python --version
+                    - pip install cfn-lint
+                    - cfn-lint *.yaml
+
+ 
+
+#================================================================================
+# CodePipeline
+#================================================================================
+
+# CodePipeline IAM
+
+  CFNRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Namespace}-CloudformationRole"
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [cloudformation.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: !Sub "${Namespace}-CloudFormationS3Policy"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - 's3:*'
+                Effect: Allow
+                Resource: '*'
+              
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Namespace}-PipelineRole"
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codepipeline.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: !Sub "${Namespace}-CodePipelinePolicy"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'codebuild:*'
+                - 's3:*'
+                - 'cloudformation:CreateStack'
+                - 'cloudformation:DescribeStacks'
+                - 'cloudformation:DeleteStack'
+                - 'cloudformation:UpdateStack'
+                - 'cloudformation:CreateChangeSet'
+                - 'cloudformation:ExecuteChangeSet'
+                - 'cloudformation:DeleteChangeSet'
+                - 'cloudformation:DescribeChangeSet'
+                - 'cloudformation:SetStackPolicy'
+                - 'iam:PassRole'
+                - 'sns:Publish'
+                Effect: Allow
+                Resource: '*'
+
+# CodePipeline Logic
+
+  ArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+
+  CodePipelineSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: !Ref Email
+          Protocol: email
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref 'ArtifactStoreBucket'
+        Type: S3
+      DisableInboundStageTransitions: []
+      Name: !Ref 'PipelineName'
+      RoleArn: !GetAtt [PipelineRole, Arn]
+      Stages:
+        - Name: Get-Github-Sources
+          Actions:
+            - Name: TemplateSource
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: '1'
+              Configuration:
+                Owner: !Ref GithubOwner
+                Repo: !Ref GithubRepo
+                Branch: !Ref GithubBranch
+                OAuthToken: !Ref GithubOAuthToken
+              OutputArtifacts:
+                - Name: TemplateSource
+              RunOrder: 1
+        - Name: Validate-CloudFormation-Templates
+          Actions:
+            - Name: CFN-Lint
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref CFNLintCodeBuildProject
+              InputArtifacts:
+                - Name: TemplateSource
+              OutputArtifacts:
+                - Name: TemplateSourceLinted
+              RunOrder: 1
+        - Name: Prod-Stage
+          Actions:
+            - Name: CreateChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: TemplateSource
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                RoleArn: !GetAtt [CFNRole, Arn]
+                StackName: !Ref ProdStackName
+                ChangeSetName: !Ref ChangeSetName
+                TemplateConfiguration: !Sub "TemplateSource::${ProdStackConfig}"
+                TemplatePath: !Sub "TemplateSource::${TemplateFileName}"
+              RunOrder: 1
+            - Name: ApproveChangeSet
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: '1'
+              Configuration:
+                NotificationArn: !Ref CodePipelineSNSTopic
+                CustomData: !Sub 'A new change set was created for the ${ProdStackName} stack. Do you want to implement the changes?'
+              RunOrder: 2
+            - Name: ExecuteChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                ChangeSetName: !Ref ChangeSetName
+                RoleArn: !GetAtt [CFNRole, Arn]
+                StackName: !Ref ProdStackName
+              RunOrder: 3
