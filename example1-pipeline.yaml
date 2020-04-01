@@ -37,7 +37,7 @@ Parameters:
     Description: A name for the production stack
     Type: String
   ProdStackConfig:
-    Default: prod-stack-configuration.json
+    Default: example1-stackset-conf-prod.json
     Description: The configuration file name for the production stack
     Type: String
   ChangeSetName:
