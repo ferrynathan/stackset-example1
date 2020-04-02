@@ -7,11 +7,11 @@ Resources:
   StackSet:
     Type: Custom::StackSet
     Properties:
-      ServiceToken:
+      ServiceToken: 
         Fn::ImportValue: StackSetCustomResource
       StackSetName: EventDynamoDB
       StackSetDescription: Deploy DynamoDB for event tables in dev and production
-      TemplateURL: https://test-templates-nathan.s3-eu-west-1.amazonaws.com/events.yaml
+      TemplateURL: https://example1-pipeline-bucket-nathan.s3-eu-west-1.amazonaws.com/example1-stack.yaml
       Parameters:
         - ReadCapacity: 20
         - WriteCapacity: 20

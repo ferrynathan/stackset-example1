@@ -8,6 +8,10 @@
       "ParameterValue": "example1-pipeline"
     },
     {
+      "ParameterKey": "PipelineBucketName",
+      "ParameterValue": "example1-pipeline-bucket-nathan"
+    },
+    {
       "ParameterKey": "GithubOwner",
       "ParameterValue": "ferrynathan"
     },

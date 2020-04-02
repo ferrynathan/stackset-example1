@@ -15,6 +15,9 @@ Parameters:
   PipelineName:
     Description: A name for the pipeline
     Type: String
+  PipelineBucketName:
+    Description: A name for the pipeline main bucket
+    Type: String
   GithubOwner: 
     Description: 'Github account name (not an url)'
     Type: String
@@ -211,6 +214,7 @@ Resources:
   ArtifactStoreBucket:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: !Ref PipelineBucketName
       VersioningConfiguration:
         Status: Enabled
 
@@ -273,7 +277,7 @@ Resources:
               InputArtifacts:
                 - Name: TemplateSource
               Configuration:
-                BucketName: 'test-templates-nathan'
+                BucketName: !Ref PipelineBucketName
                 Extract: true
               RunOrder: 1
         - Name: Prod-Stage
