@@ -32,10 +32,6 @@
       "ParameterValue": "Prod-MyStack"
     },
     {
-      "ParameterKey": "ProdStackConfig",
-      "ParameterValue": "example1-stackset-conf-prod.json"
-    },
-    {
       "ParameterKey": "ChangeSetName",
       "ParameterValue": "UpdatePreview-MyStack"
     },
@@ -43,4 +39,4 @@
         "ParameterKey": "Email",
         "ParameterValue": "nathan.ferry@gekko.fr"
     }
-  ]
+]

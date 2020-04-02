@@ -33,9 +33,6 @@ Parameters:
   ProdStackName:
     Description: A name for the production stack
     Type: String
-  ProdStackConfig:
-    Description: The configuration file name for the production stack
-    Type: String
   ChangeSetName:
     Description: A name for the production stack change set
     Type: String
@@ -62,7 +59,6 @@ Metadata:
         Parameters:
           - ChangeSetName
           - ProdStackName
-          - ProdStackConfig
 
 Resources:
 
@@ -281,7 +277,6 @@ Resources:
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref ProdStackName
                 ChangeSetName: !Ref ChangeSetName
-                TemplateConfiguration: !Sub "TemplateSource::${ProdStackConfig}"
                 TemplatePath: !Sub "TemplateSource::${TemplateFileName}"
               RunOrder: 1
             - Name: ApproveChangeSet

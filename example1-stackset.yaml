@@ -3,18 +3,13 @@ AWSTemplateFormatVersion: "2010-09-09"
 
 Description: "test"
 
-Parameters:
-  StackSetName:
-    Description: The name of the stackset
-    Type: String
-
 Resources:
   StackSet:
     Type: Custom::StackSet
     Properties:
       ServiceToken:
         Fn::ImportValue: StackSetCustomResource
-      StackSetName: !Ref StackSetName
+      StackSetName: EventDynamoDB
       StackSetDescription: Deploy DynamoDB for event tables in dev and production
       TemplateURL: https://test-templates-nathan.s3-eu-west-1.amazonaws.com/events.yaml
       Parameters:
