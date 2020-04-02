@@ -1,0 +1,38 @@
+[
+    {
+      "ParameterKey": "Namespace",
+      "ParameterValue": "Nathan"
+    }, 
+    {
+      "ParameterKey": "PipelineName",
+      "ParameterValue": "example1-pipeline"
+    },
+    {
+      "ParameterKey": "GithubOwner",
+      "ParameterValue": "ferrynathan"
+    },
+    {
+      "ParameterKey": "GithubRepo",
+      "ParameterValue": "stackset-example1"
+    },
+    {
+      "ParameterKey": "GithubBranch",
+      "ParameterValue": "master"
+    },
+    {
+      "ParameterKey": "TemplateFileName",
+      "ParameterValue": "example1-stackset.yaml"
+    },
+    {
+      "ParameterKey": "ProdStackName",
+      "ParameterValue": "Prod-MyStack"
+    },
+    {
+      "ParameterKey": "ChangeSetName",
+      "ParameterValue": "UpdatePreview-MyStack"
+    },
+    {
+        "ParameterKey": "Email",
+        "ParameterValue": "nathan.ferry@gekko.fr"
+    }
+  ]

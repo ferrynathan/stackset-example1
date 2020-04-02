@@ -12,7 +12,6 @@ Parameters:
   Namespace:
     Description: A prefix used to name provisioned resources
     Type: String
-    Default: Nathan
   PipelineName:
     Description: A name for the pipeline
     Type: String
@@ -26,18 +25,15 @@ Parameters:
     Description: 'Github branch that triggers the pipeline with a webhook (master for example)'
     Type: String
   GithubOAuthToken:
-    Description: Github OAuthToken to give CodePipeline permissions to pull the repo
+    Description: Github OAuthToken to give CodePipeline permissions to pull the repo. Don't store it in code.
     Type: String
   TemplateFileName:
-    Default: example1-stackset.yaml
     Description: The file name of your stack template
     Type: String
   ProdStackName:
-    Default: Prod-MyStack
     Description: A name for the production stack
     Type: String
   ChangeSetName:
-    Default: UpdatePreview-MyStack
     Description: A name for the production stack change set
     Type: String
   Email:
@@ -50,13 +46,14 @@ Metadata:
       - Label:
           default: "CodePipeline Settings"
         Parameters:
+          - Namespace
           - PipelineName
-          - Email
           - GithubOwner
           - GithubRepo
           - GithubBranch
           - GithubOAuthToken
           - TemplateFileName
+          - Email
       - Label:
           default: "Production Stack Settings"
         Parameters:
