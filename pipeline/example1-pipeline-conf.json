@@ -33,7 +33,7 @@
     },
     {
       "ParameterKey": "ProdStackConfig",
-      "ParameterValue": "example1-pipeline-conf.json"
+      "ParameterValue": "example1-stackset-conf-prod.json"
     },
     {
       "ParameterKey": "ChangeSetName",
