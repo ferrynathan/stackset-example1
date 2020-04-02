@@ -262,6 +262,20 @@ Resources:
               OutputArtifacts:
                 - Name: TemplateSourceLinted
               RunOrder: 1
+        - Name: Upload-to-S3
+          Actions:
+            - Name: Upload
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: "1"
+              InputArtifacts:
+                - Name: TemplateSource
+              Configuration:
+                BucketName: 'test-templates-nathan'
+                Extract: true
+              RunOrder: 1
         - Name: Prod-Stage
           Actions:
             - Name: CreateChangeSet
