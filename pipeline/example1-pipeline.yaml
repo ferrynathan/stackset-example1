@@ -25,7 +25,7 @@ Parameters:
     Description: 'Github branch that triggers the pipeline with a webhook (master for example)'
     Type: String
   GithubOAuthToken:
-    Description: Github OAuthToken to give CodePipeline permissions to pull the repo. Don't store it in code.
+    Description: The name of your secret in Secret Manager that stores the Git Token.
     Type: String
   TemplateFileName:
     Description: The file name of your stack template
@@ -243,7 +243,7 @@ Resources:
                 Owner: !Ref GithubOwner
                 Repo: !Ref GithubRepo
                 Branch: !Ref GithubBranch
-                OAuthToken: !Ref GithubOAuthToken
+                OAuthToken: !Sub "{{resolve:secretsmanager:${GithubOAuthToken}:SecretString:Token}}"
               OutputArtifacts:
                 - Name: TemplateSource
               RunOrder: 1

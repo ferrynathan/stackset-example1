@@ -20,6 +20,10 @@
       "ParameterValue": "master"
     },
     {
+      "ParameterKey": "GithubOAuthToken",
+      "ParameterValue": "GithubOAuthToken"
+    },
+    {
       "ParameterKey": "TemplateFileName",
       "ParameterValue": "example1-stackset.yaml"
     },
