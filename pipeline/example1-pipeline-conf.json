@@ -32,6 +32,10 @@
       "ParameterValue": "Prod-MyStack"
     },
     {
+      "ParameterKey": "ProdStackConfig",
+      "ParameterValue": "example1-pipeline-conf.json"
+    },
+    {
       "ParameterKey": "ChangeSetName",
       "ParameterValue": "UpdatePreview-MyStack"
     },
